@@ -775,17 +775,25 @@ const Home = () => {
 // Main App Component
 function App() {
   const [isLoading, setIsLoading] = useState(true);
+  const { isDark, setTheme } = useThemeStore();
 
   useEffect(() => {
+    // Initialize theme from system preference if not set
+    if (typeof isDark === 'undefined') {
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(systemPrefersDark);
+    }
+
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 2500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [isDark, setTheme]);
 
   return (
-    <div className="App">
+    <div className={`App transition-colors duration-500 ${isDark ? 'dark' : ''}`}>
+      <CustomCursor />
       <LoadingScreen isLoading={isLoading} />
       
       <BrowserRouter>
@@ -793,9 +801,9 @@ function App() {
         <main className="pt-20">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/gallery" element={<div className="min-h-screen flex items-center justify-center"><h1 className="font-playfair text-4xl text-luxury-gold">Gallery Coming Soon</h1></div>} />
-            <Route path="/about" element={<div className="min-h-screen flex items-center justify-center"><h1 className="font-playfair text-4xl text-luxury-gold">About Coming Soon</h1></div>} />
-            <Route path="/contact" element={<div className="min-h-screen flex items-center justify-center"><h1 className="font-playfair text-4xl text-luxury-gold">Contact Coming Soon</h1></div>} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
           </Routes>
         </main>
         <Footer />
