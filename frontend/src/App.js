@@ -249,28 +249,52 @@ const Header = () => {
 
 // Hero Section Component
 const HeroSection = () => {
+  const { isDark } = useThemeStore();
+  const [ref, inView] = useInView({
+    threshold: 0.1,
+    triggerOnce: true
+  });
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-luxury-cream via-luxury-cream-light to-luxury-gold-light">
+    <section 
+      ref={ref}
+      className={`
+        relative min-h-screen flex items-center justify-center overflow-hidden transition-colors duration-500
+        ${isDark 
+          ? 'bg-gradient-to-br from-dark-bg via-dark-bg-secondary to-dark-bg-tertiary' 
+          : 'bg-gradient-to-br from-luxury-cream via-luxury-cream-light to-luxury-gold-light'
+        }
+      `}
+    >
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-luxury-pattern opacity-30" />
+      <div className="absolute inset-0 bg-luxury-pattern opacity-20" />
       
-      {/* Floating Elements */}
-      <div className="absolute inset-0">
-        <motion.div
-          animate={{ y: [-20, 20, -20] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-1/4 w-4 h-4 bg-luxury-gold rounded-full opacity-60"
-        />
-        <motion.div
-          animate={{ y: [20, -20, 20] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/3 right-1/3 w-2 h-2 bg-luxury-gold rounded-full opacity-40"
-        />
-        <motion.div
-          animate={{ y: [-30, 30, -30] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-luxury-gold rounded-full opacity-50"
-        />
+      {/* Enhanced Floating Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-luxury-gold"
+            style={{
+              width: Math.random() * 8 + 4,
+              height: Math.random() * 8 + 4,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              opacity: 0.3
+            }}
+            animate={{
+              y: [0, -30, 0],
+              x: [0, Math.random() * 20 - 10, 0],
+              opacity: [0.3, 0.8, 0.3]
+            }}
+            transition={{
+              duration: Math.random() * 4 + 6,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: Math.random() * 2
+            }}
+          />
+        ))}
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -279,20 +303,38 @@ const HeroSection = () => {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            animate="visible"
+            animate={inView ? "visible" : "hidden"}
             className="text-center lg:text-left"
           >
             <motion.h1
               variants={fadeInUp}
-              className="font-playfair text-5xl md:text-6xl lg:text-7xl font-bold text-luxury-charcoal leading-tight"
+              className={`
+                font-playfair text-5xl md:text-6xl lg:text-7xl font-bold leading-tight
+                ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
+              `}
             >
               Exquisite
-              <span className="text-luxury-gold block">Craftsmanship</span>
+              <motion.span 
+                className="text-luxury-gold block"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{ 
+                  duration: 3, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+              >
+                Craftsmanship
+              </motion.span>
             </motion.h1>
             
             <motion.p
               variants={fadeInUp}
-              className="font-inter text-xl md:text-2xl text-luxury-charcoal/80 mt-6 leading-relaxed"
+              className={`
+                font-inter text-xl md:text-2xl mt-6 leading-relaxed
+                ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
+              `}
             >
               Discover timeless elegance with our handcrafted jewelry collection, 
               where tradition meets contemporary design.
@@ -303,16 +345,27 @@ const HeroSection = () => {
               className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(212, 175, 55, 0.4)" }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-gradient-gold text-white font-inter font-semibold rounded-full shadow-gold hover:shadow-gold-lg transition-all duration-300"
+                className="group relative px-8 py-4 bg-gradient-gold text-white font-inter font-semibold rounded-full overflow-hidden"
               >
+                <motion.span
+                  className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+                  whileHover={{ scale: 1.5 }}
+                />
                 Explore Collection
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ 
+                  scale: 1.05,
+                  backgroundColor: isDark ? 'rgba(212, 175, 55, 1)' : 'rgba(212, 175, 55, 1)',
+                  color: isDark ? 'rgba(15, 15, 15, 1)' : 'rgba(255, 255, 255, 1)'
+                }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 border-2 border-luxury-gold text-luxury-gold font-inter font-semibold rounded-full hover:bg-luxury-gold hover:text-white transition-all duration-300"
+                className={`
+                  px-8 py-4 border-2 border-luxury-gold font-inter font-semibold rounded-full transition-all duration-300
+                  ${isDark ? 'text-luxury-gold' : 'text-luxury-gold'}
+                `}
               >
                 Custom Design
               </motion.button>
@@ -323,45 +376,74 @@ const HeroSection = () => {
           <motion.div
             variants={scaleIn}
             initial="hidden"
-            animate="visible"
+            animate={inView ? "visible" : "hidden"}
             className="relative"
           >
-            <div className="relative rounded-3xl overflow-hidden shadow-luxury-lg">
-              <img
+            <div className="relative rounded-3xl overflow-hidden shadow-luxury-xl">
+              <motion.img
                 src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338"
                 alt="Luxury Jewelry Collection"
                 className="w-full h-96 lg:h-[600px] object-cover"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.6 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-luxury-charcoal/30 to-transparent" />
+              <div className={`
+                absolute inset-0 
+                ${isDark 
+                  ? 'bg-gradient-to-t from-dark-bg/60 to-transparent' 
+                  : 'bg-gradient-to-t from-luxury-charcoal/30 to-transparent'
+                }
+              `} />
               
-              {/* Overlay Content */}
+              {/* Overlay Content with Enhanced Animations */}
               <div className="absolute bottom-8 left-8 right-8">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.2, duration: 0.8 }}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl p-6"
+                  className={`
+                    backdrop-blur-xl rounded-2xl p-6 border
+                    ${isDark 
+                      ? 'bg-dark-bg-secondary/80 border-luxury-gold/20' 
+                      : 'bg-white/90 border-white/20'
+                    }
+                  `}
                 >
-                  <h3 className="font-playfair text-xl font-bold text-luxury-charcoal">
+                  <h3 className={`
+                    font-playfair text-xl font-bold
+                    ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
+                  `}>
                     Heritage Collection
                   </h3>
-                  <p className="font-inter text-luxury-charcoal/80 mt-2">
+                  <p className={`
+                    font-inter mt-2
+                    ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
+                  `}>
                     Timeless pieces crafted with precision
                   </p>
                 </motion.div>
               </div>
             </div>
 
-            {/* Decorative Elements */}
+            {/* Enhanced Decorative Elements */}
             <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute -top-4 -right-4 w-12 h-12 border-4 border-luxury-gold border-dashed rounded-full opacity-60"
+              animate={{ 
+                rotate: 360,
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ 
+                rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+                scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="absolute -top-6 -right-6 w-16 h-16 border-4 border-luxury-gold border-dashed rounded-full opacity-60"
             />
             <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -bottom-4 -left-4 w-8 h-8 bg-luxury-gold rounded-full opacity-80"
+              animate={{ 
+                scale: [1, 1.2, 1],
+                opacity: [0.8, 1, 0.8]
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -bottom-6 -left-6 w-12 h-12 bg-luxury-gold rounded-full"
             />
           </motion.div>
         </div>
