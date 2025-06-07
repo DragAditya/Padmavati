@@ -453,57 +453,78 @@ const HeroSection = () => {
 };
 
 // Featured Collections Section
-const FeaturedCollections = () => {
+const FeaturedCollections = memo(() => {
+  const { isDark } = useThemeStore();
+  const [ref, inView] = useInView({
+    threshold: 0.1,
+    triggerOnce: true
+  });
+
   const collections = [
     {
       id: 1,
       title: "Gold Rings",
       image: "https://images.unsplash.com/photo-1606623546924-a4f3ae5ea3e8",
       icon: <FaRing />,
-      description: "Elegant gold rings crafted with precision"
+      description: "Elegant gold rings crafted with precision",
+      price: "₹35,000+"
     },
     {
       id: 2,
       title: "Necklaces",
       image: "https://images.unsplash.com/photo-1611107683227-e9060eccd846",
       icon: <FaGem />,
-      description: "Stunning necklaces for every occasion"
+      description: "Stunning necklaces for every occasion",
+      price: "₹65,000+"
     },
     {
       id: 3,
       title: "Bridal Collection",
       image: "https://images.pexels.com/photos/32455915/pexels-photo-32455915.png",
       icon: <FaHeart />,
-      description: "Traditional bridal jewelry sets"
+      description: "Traditional bridal jewelry sets",
+      price: "₹2,50,000+"
     },
     {
       id: 4,
       title: "Ring Sets",
       image: "https://images.unsplash.com/photo-1684616289806-caa847f47f0e",
       icon: <FaCrown />,
-      description: "Complete ring collections"
+      description: "Complete ring collections",
+      price: "₹1,80,000+"
     }
   ];
 
   return (
-    <section className="py-24 bg-luxury-cream-light">
+    <section 
+      ref={ref}
+      className={`
+        py-24 transition-colors duration-500
+        ${isDark ? 'bg-dark-bg' : 'bg-luxury-cream-light'}
+      `}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+          animate={inView ? "visible" : "hidden"}
           className="text-center mb-16"
         >
           <motion.h2
             variants={fadeInUp}
-            className="font-playfair text-4xl md:text-5xl font-bold text-luxury-charcoal"
+            className={`
+              font-playfair text-4xl md:text-5xl font-bold
+              ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
+            `}
           >
             Featured Collections
           </motion.h2>
           <motion.p
             variants={fadeInUp}
-            className="font-inter text-xl text-luxury-charcoal/80 mt-4 max-w-2xl mx-auto"
+            className={`
+              font-inter text-xl mt-4 max-w-2xl mx-auto
+              ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
+            `}
           >
             Discover our handpicked selection of exquisite jewelry pieces
           </motion.p>
@@ -512,60 +533,109 @@ const FeaturedCollections = () => {
         <motion.div
           variants={staggerContainer}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+          animate={inView ? "visible" : "hidden"}
           className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
         >
-          {collections.map((collection) => (
+          {collections.map((collection, index) => (
             <motion.div
               key={collection.id}
               variants={scaleIn}
-              whileHover={{ y: -10 }}
+              whileHover={{ y: -15, scale: 1.02 }}
               className="group cursor-pointer"
             >
-              <div className="relative overflow-hidden rounded-3xl shadow-luxury group-hover:shadow-luxury-lg transition-all duration-500">
-                <img
-                  src={collection.image}
-                  alt={collection.title}
-                  className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-luxury-charcoal/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                {/* Content Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                  <div className="flex items-center space-x-3 mb-2">
+              <div className={`
+                relative overflow-hidden rounded-3xl transition-all duration-700
+                ${isDark 
+                  ? 'bg-dark-bg-secondary shadow-dark hover:shadow-dark-lg' 
+                  : 'bg-white shadow-luxury hover:shadow-luxury-lg'
+                }
+              `}>
+                <div className="relative overflow-hidden">
+                  <motion.img
+                    src={collection.image}
+                    alt={collection.title}
+                    className="w-full h-80 object-cover"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.6 }}
+                    loading="lazy"
+                  />
+                  
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  {/* Price Tag */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    whileHover={{ opacity: 1, y: 0 }}
+                    className="absolute top-4 right-4 bg-luxury-gold text-white px-3 py-2 rounded-full text-sm font-bold"
+                  >
+                    {collection.price}
+                  </motion.div>
+
+                  {/* Hover Content */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="px-6 py-3 bg-white/20 backdrop-blur-md text-white font-semibold rounded-full border border-white/30 hover:bg-luxury-gold/80 transition-colors"
+                    >
+                      View Collection
+                    </motion.button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  <div className="flex items-center space-x-3 mb-3">
                     <span className="text-luxury-gold text-xl">{collection.icon}</span>
-                    <h3 className="font-playfair text-xl font-bold text-white">
+                    <h3 className={`
+                      font-playfair text-xl font-bold
+                      ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
+                    `}>
                       {collection.title}
                     </h3>
                   </div>
-                  <p className="font-inter text-white/90 text-sm">
+                  <p className={`
+                    font-inter text-sm leading-relaxed
+                    ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
+                  `}>
                     {collection.description}
                   </p>
-                </div>
-
-                {/* Card Background */}
-                <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm rounded-2xl p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 delay-100">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-luxury-gold text-lg">{collection.icon}</span>
-                    <div>
-                      <h3 className="font-playfair text-lg font-bold text-luxury-charcoal">
-                        {collection.title}
-                      </h3>
-                      <p className="font-inter text-luxury-charcoal/80 text-sm">
-                        {collection.description}
-                      </p>
-                    </div>
-                  </div>
+                  
+                  {/* Action Button */}
+                  <motion.div
+                    className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    whileHover={{ x: 5 }}
+                  >
+                    <span className="text-luxury-gold font-medium text-sm cursor-pointer hover:underline">
+                      Explore More →
+                    </span>
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Call to Action */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="text-center mt-16"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-8 py-4 bg-gradient-gold text-white font-semibold rounded-full shadow-gold-lg hover:shadow-gold-xl transition-all duration-300"
+          >
+            View All Collections
+          </motion.button>
+        </motion.div>
       </div>
     </section>
   );
-};
+});
 
 // Footer Component
 const Footer = () => {
