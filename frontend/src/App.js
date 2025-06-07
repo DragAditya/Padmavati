@@ -1,6 +1,6 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { 
   FaInstagram, 
   FaWhatsapp, 
@@ -11,7 +11,10 @@ import {
   FaGem,
   FaRing,
   FaHeart,
-  FaCrown
+  FaCrown,
+  FaArrowRight,
+  FaPlay,
+  FaShoppingBag
 } from 'react-icons/fa';
 import { useInView } from 'react-intersection-observer';
 import useThemeStore from './stores/themeStore';
@@ -27,7 +30,7 @@ const fadeInUp = {
   visible: { 
     opacity: 1, 
     y: 0,
-    transition: { duration: 0.8, ease: "easeOut" }
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
   }
 };
 
@@ -36,50 +39,91 @@ const staggerContainer = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2
+      staggerChildren: 0.15,
+      delayChildren: 0.1
     }
   }
 };
 
 const scaleIn = {
-  hidden: { opacity: 0, scale: 0.8 },
+  hidden: { opacity: 0, scale: 0.9 },
   visible: { 
     opacity: 1, 
     scale: 1,
-    transition: { duration: 0.6, ease: "easeOut" }
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
   }
 };
 
-// Loading Screen Component
-const LoadingScreen = ({ isLoading }) => (
-  <AnimatePresence>
-    {isLoading && (
-      <motion.div
-        initial={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.8 }}
-        className="fixed inset-0 z-50 bg-luxury-cream flex items-center justify-center"
-      >
+// Enhanced Loading Screen Component
+const LoadingScreen = ({ isLoading }) => {
+  const { isDark } = useThemeStore();
+  
+  return (
+    <AnimatePresence>
+      {isLoading && (
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="text-center"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0, scale: 1.1 }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className={`
+            fixed inset-0 z-50 flex items-center justify-center
+            ${isDark ? 'bg-dark-bg' : 'bg-luxury-cream'}
+          `}
         >
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-luxury-gold border-t-transparent rounded-full mx-auto mb-4"
-          />
-          <h2 className="font-playfair text-2xl text-luxury-gold">Padmavati Jewellers</h2>
-          <p className="font-inter text-luxury-charcoal mt-2">Crafting Excellence Since Generations</p>
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="text-center"
+          >
+            {/* Modern Loading Animation */}
+            <motion.div className="relative mb-8">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                className="w-20 h-20 mx-auto"
+              >
+                <div className="w-full h-full border-4 border-luxury-gold/20 rounded-full">
+                  <div className="w-full h-full border-t-4 border-luxury-gold rounded-full"></div>
+                </div>
+              </motion.div>
+              
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <FaCrown className="text-luxury-gold text-3xl" />
+              </motion.div>
+            </motion.div>
+            
+            <motion.h2 
+              className={`
+                font-playfair text-3xl font-bold text-luxury-gold mb-3
+              `}
+              animate={{ opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              Padmavati Jewellers
+            </motion.h2>
+            <motion.p 
+              className={`
+                font-inter
+                ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
+              `}
+              animate={{ opacity: [0.5, 0.8, 0.5] }}
+              transition={{ duration: 2.5, repeat: Infinity }}
+            >
+              Crafting Excellence Since Generations
+            </motion.p>
+          </motion.div>
         </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
+      )}
+    </AnimatePresence>
+  );
+};
 
-// Header Component
+// Enhanced Header Component
 const Header = () => {
   const { isDark } = useThemeStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -93,29 +137,50 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const NavLink = ({ to, children, onClick }) => (
+    <Link 
+      to={to} 
+      onClick={onClick}
+      className={`
+        font-inter font-medium transition-all duration-300 relative group py-2
+        ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+      `}
+    >
+      {children}
+      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
+    </Link>
+  );
+
   return (
     <motion.header
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, delay: 0.5 }}
+      transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={`
         fixed top-0 left-0 right-0 z-40 transition-all duration-500
         ${scrolled || isDark
           ? isDark 
-            ? 'bg-dark-bg/95 backdrop-blur-xl border-b border-luxury-gold/20' 
-            : 'bg-luxury-cream-light/95 backdrop-blur-xl border-b border-luxury-gold/20'
+            ? 'bg-dark-bg/90 backdrop-blur-xl border-b border-luxury-gold/10 shadow-dark' 
+            : 'bg-luxury-cream/90 backdrop-blur-xl border-b border-luxury-gold/10 shadow-luxury'
           : 'bg-transparent'
         }
       `}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
+          {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
             <motion.div
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.6 }}
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="relative"
             >
               <FaCrown className="text-luxury-gold text-2xl" />
+              <motion.div
+                className="absolute inset-0 bg-luxury-gold rounded-full opacity-0 group-hover:opacity-20"
+                whileHover={{ scale: 1.5 }}
+                transition={{ duration: 0.3 }}
+              />
             </motion.div>
             <span className={`
               font-playfair text-2xl font-bold transition-colors duration-300
@@ -127,61 +192,51 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
-              className={`
-                font-inter transition-all duration-300 relative group
-                ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
-              `}
-            >
-              Home
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
-            </Link>
-            <Link 
-              to="/gallery" 
-              className={`
-                font-inter transition-all duration-300 relative group
-                ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
-              `}
-            >
-              Gallery
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
-            </Link>
-            <Link 
-              to="/about" 
-              className={`
-                font-inter transition-all duration-300 relative group
-                ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
-              `}
-            >
-              About
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
-            </Link>
-            <Link 
-              to="/contact" 
-              className={`
-                font-inter transition-all duration-300 relative group
-                ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
-              `}
-            >
-              Contact
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
-            </Link>
+            <NavLink to="/">Home</NavLink>
+            <NavLink to="/gallery">Gallery</NavLink>
+            <NavLink to="/about">About</NavLink>
+            <NavLink to="/contact">Contact</NavLink>
             <ThemeToggle />
           </nav>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu */}
           <div className="md:hidden flex items-center space-x-4">
             <ThemeToggle />
-            <button
+            <motion.button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              whileTap={{ scale: 0.95 }}
               className={`
-                transition-colors duration-300
-                ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
+                w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300
+                ${isDark 
+                  ? 'text-dark-text hover:bg-dark-bg-tertiary' 
+                  : 'text-luxury-charcoal hover:bg-luxury-gold/10'
+                }
               `}
             >
-              {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-            </button>
+              <AnimatePresence mode="wait">
+                {isMenuOpen ? (
+                  <motion.div
+                    key="close"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <FaTimes size={20} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="menu"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <FaBars size={20} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
           </div>
         </div>
 
@@ -192,52 +247,17 @@ const Header = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className={`
-                md:hidden py-4 border-t
-                ${isDark ? 'border-luxury-gold/20' : 'border-luxury-gold/20'}
+                md:hidden py-6 border-t overflow-hidden
+                ${isDark ? 'border-luxury-gold/10' : 'border-luxury-gold/10'}
               `}
             >
               <div className="flex flex-col space-y-4">
-                <Link 
-                  to="/" 
-                  className={`
-                    font-inter transition-colors duration-300
-                    ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
-                  `}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Home
-                </Link>
-                <Link 
-                  to="/gallery" 
-                  className={`
-                    font-inter transition-colors duration-300
-                    ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
-                  `}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Gallery
-                </Link>
-                <Link 
-                  to="/about" 
-                  className={`
-                    font-inter transition-colors duration-300
-                    ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
-                  `}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  About
-                </Link>
-                <Link 
-                  to="/contact" 
-                  className={`
-                    font-inter transition-colors duration-300
-                    ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
-                  `}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Contact
-                </Link>
+                <NavLink to="/" onClick={() => setIsMenuOpen(false)}>Home</NavLink>
+                <NavLink to="/gallery" onClick={() => setIsMenuOpen(false)}>Gallery</NavLink>
+                <NavLink to="/about" onClick={() => setIsMenuOpen(false)}>About</NavLink>
+                <NavLink to="/contact" onClick={() => setIsMenuOpen(false)}>Contact</NavLink>
               </div>
             </motion.nav>
           )}
@@ -247,7 +267,73 @@ const Header = () => {
   );
 };
 
-// Hero Section Component
+// Modern Button Component
+const ModernButton = ({ 
+  children, 
+  variant = 'primary', 
+  size = 'md', 
+  onClick, 
+  href, 
+  className = '',
+  icon,
+  ...props 
+}) => {
+  const navigate = useNavigate();
+  
+  const handleClick = useCallback(() => {
+    if (href) {
+      navigate(href);
+    } else if (onClick) {
+      onClick();
+    }
+  }, [href, onClick, navigate]);
+
+  const baseClasses = `
+    relative group inline-flex items-center justify-center font-inter font-semibold rounded-full 
+    transition-all duration-300 ease-out overflow-hidden
+  `;
+  
+  const variants = {
+    primary: `
+      bg-gradient-primary text-white shadow-gold hover:shadow-gold-lg 
+      hover:scale-105 active:scale-95
+    `,
+    secondary: `
+      border-2 border-luxury-gold text-luxury-gold hover:bg-luxury-gold 
+      hover:text-white hover:scale-105 active:scale-95
+    `,
+    ghost: `
+      bg-transparent text-luxury-gold hover:bg-luxury-gold/10 
+      hover:scale-105 active:scale-95
+    `
+  };
+  
+  const sizes = {
+    sm: 'px-6 py-3 text-sm',
+    md: 'px-8 py-4 text-base',
+    lg: 'px-10 py-5 text-lg'
+  };
+
+  return (
+    <motion.button
+      onClick={handleClick}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
+      {...props}
+    >
+      {/* Shimmer Effect */}
+      <div className="absolute inset-0 -top-1 -bottom-1 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+      
+      <span className="relative flex items-center space-x-2">
+        {children}
+        {icon && <span className="group-hover:translate-x-1 transition-transform duration-300">{icon}</span>}
+      </span>
+    </motion.button>
+  );
+};
+
+// Enhanced Hero Section
 const HeroSection = () => {
   const { isDark } = useThemeStore();
   const [ref, inView] = useInView({
@@ -262,65 +348,92 @@ const HeroSection = () => {
         relative min-h-screen flex items-center justify-center overflow-hidden transition-colors duration-500
         ${isDark 
           ? 'bg-gradient-to-br from-dark-bg via-dark-bg-secondary to-dark-bg-tertiary' 
-          : 'bg-gradient-to-br from-luxury-cream via-luxury-cream-light to-luxury-gold-light'
+          : 'bg-gradient-to-br from-luxury-cream via-luxury-cream-light to-luxury-gold-bright'
         }
       `}
     >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-luxury-pattern opacity-20" />
-      
-      {/* Enhanced Floating Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(12)].map((_, i) => (
+      {/* Modern Background Elements */}
+      <div className="absolute inset-0">
+        {/* Animated Mesh Gradient */}
+        <motion.div
+          animate={{
+            background: [
+              'radial-gradient(circle at 20% 50%, rgba(201, 169, 97, 0.1) 0%, transparent 50%)',
+              'radial-gradient(circle at 80% 50%, rgba(201, 169, 97, 0.1) 0%, transparent 50%)',
+              'radial-gradient(circle at 20% 50%, rgba(201, 169, 97, 0.1) 0%, transparent 50%)'
+            ]
+          }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="absolute inset-0"
+        />
+        
+        {/* Floating Particles */}
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full bg-luxury-gold"
             style={{
-              width: Math.random() * 8 + 4,
-              height: Math.random() * 8 + 4,
+              width: Math.random() * 6 + 2,
+              height: Math.random() * 6 + 2,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               opacity: 0.3
             }}
             animate={{
-              y: [0, -30, 0],
-              x: [0, Math.random() * 20 - 10, 0],
-              opacity: [0.3, 0.8, 0.3]
+              y: [0, -40, 0],
+              x: [0, Math.random() * 30 - 15, 0],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [1, 1.2, 1]
             }}
             transition={{
-              duration: Math.random() * 4 + 6,
+              duration: Math.random() * 6 + 8,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: Math.random() * 2
+              delay: Math.random() * 3
             }}
           />
         ))}
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Enhanced Left Content */}
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
             className="text-center lg:text-left"
           >
+            <motion.div
+              variants={fadeInUp}
+              className="mb-6"
+            >
+              <span className={`
+                inline-block px-4 py-2 rounded-full text-sm font-medium mb-4
+                ${isDark 
+                  ? 'bg-dark-bg-tertiary text-luxury-gold border border-luxury-gold/20' 
+                  : 'bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/20'
+                }
+              `}>
+                ✨ Premium Jewelry Collection
+              </span>
+            </motion.div>
+            
             <motion.h1
               variants={fadeInUp}
               className={`
-                font-playfair text-5xl md:text-6xl lg:text-7xl font-bold leading-tight
+                font-playfair text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6
                 ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
               `}
             >
               Exquisite
               <motion.span 
-                className="text-luxury-gold block"
+                className="block bg-gradient-to-r from-luxury-gold to-luxury-gold-accent bg-clip-text text-transparent"
                 animate={{ 
                   backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
                 }}
                 transition={{ 
-                  duration: 3, 
+                  duration: 4, 
                   repeat: Infinity, 
                   ease: "easeInOut" 
                 }}
@@ -332,7 +445,7 @@ const HeroSection = () => {
             <motion.p
               variants={fadeInUp}
               className={`
-                font-inter text-xl md:text-2xl mt-6 leading-relaxed
+                font-inter text-xl md:text-2xl leading-relaxed mb-8 max-w-2xl
                 ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
               `}
             >
@@ -342,109 +455,154 @@ const HeroSection = () => {
             
             <motion.div
               variants={fadeInUp}
-              className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(212, 175, 55, 0.4)" }}
-                whileTap={{ scale: 0.95 }}
-                className="group relative px-8 py-4 bg-gradient-gold text-white font-inter font-semibold rounded-full overflow-hidden"
+              <ModernButton 
+                variant="primary" 
+                size="lg"
+                href="/gallery"
+                icon={<FaArrowRight />}
               >
-                <motion.span
-                  className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"
-                  whileHover={{ scale: 1.5 }}
-                />
                 Explore Collection
-              </motion.button>
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  backgroundColor: isDark ? 'rgba(212, 175, 55, 1)' : 'rgba(212, 175, 55, 1)',
-                  color: isDark ? 'rgba(15, 15, 15, 1)' : 'rgba(255, 255, 255, 1)'
-                }}
-                whileTap={{ scale: 0.95 }}
-                className={`
-                  px-8 py-4 border-2 border-luxury-gold font-inter font-semibold rounded-full transition-all duration-300
-                  ${isDark ? 'text-luxury-gold' : 'text-luxury-gold'}
-                `}
+              </ModernButton>
+              <ModernButton 
+                variant="secondary" 
+                size="lg"
+                href="/contact"
+                icon={<FaHeart />}
               >
                 Custom Design
-              </motion.button>
+              </ModernButton>
+            </motion.div>
+            
+            {/* Trust Indicators */}
+            <motion.div
+              variants={fadeInUp}
+              className="mt-12 grid grid-cols-3 gap-8 max-w-md mx-auto lg:mx-0"
+            >
+              {[
+                { number: "50+", label: "Years Legacy" },
+                { number: "10K+", label: "Happy Clients" },
+                { number: "500+", label: "Unique Designs" }
+              ].map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-2xl font-bold text-luxury-gold">{stat.number}</div>
+                  <div className={`
+                    text-sm font-medium
+                    ${isDark ? 'text-dark-text-muted' : 'text-luxury-charcoal/60'}
+                  `}>
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
             </motion.div>
           </motion.div>
 
-          {/* Right Content - Hero Image */}
+          {/* Enhanced Right Content */}
           <motion.div
             variants={scaleIn}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
             className="relative"
           >
-            <div className="relative rounded-3xl overflow-hidden shadow-luxury-xl">
-              <motion.img
-                src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338"
-                alt="Luxury Jewelry Collection"
-                className="w-full h-96 lg:h-[600px] object-cover"
-                whileHover={{ scale: 1.05 }}
+            <div className="relative">
+              {/* Main Image */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.6 }}
-              />
-              <div className={`
-                absolute inset-0 
-                ${isDark 
-                  ? 'bg-gradient-to-t from-dark-bg/60 to-transparent' 
-                  : 'bg-gradient-to-t from-luxury-charcoal/30 to-transparent'
-                }
-              `} />
-              
-              {/* Overlay Content with Enhanced Animations */}
-              <div className="absolute bottom-8 left-8 right-8">
+                className="relative rounded-6xl overflow-hidden shadow-luxury-xl"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338"
+                  alt="Luxury Jewelry Collection"
+                  className="w-full h-96 lg:h-[600px] object-cover"
+                />
+                
+                {/* Modern Overlay */}
+                <div className={`
+                  absolute inset-0 
+                  ${isDark 
+                    ? 'bg-gradient-to-t from-dark-bg/60 to-transparent' 
+                    : 'bg-gradient-to-t from-luxury-charcoal/30 to-transparent'
+                  }
+                `} />
+                
+                {/* Play Button for Virtual Tour */}
                 <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.2, duration: 0.8 }}
-                  className={`
-                    backdrop-blur-xl rounded-2xl p-6 border
-                    ${isDark 
-                      ? 'bg-dark-bg-secondary/80 border-luxury-gold/20' 
-                      : 'bg-white/90 border-white/20'
-                    }
-                  `}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 1.5, duration: 0.6 }}
+                  className="absolute inset-0 flex items-center justify-center"
                 >
-                  <h3 className={`
-                    font-playfair text-xl font-bold
-                    ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
-                  `}>
-                    Heritage Collection
-                  </h3>
-                  <p className={`
-                    font-inter mt-2
-                    ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
-                  `}>
-                    Timeless pieces crafted with precision
-                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-luxury-gold/80 transition-colors duration-300"
+                  >
+                    <FaPlay className="text-2xl ml-1" />
+                  </motion.button>
                 </motion.div>
-              </div>
-            </div>
+              </motion.div>
+              
+              {/* Floating Info Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 30, x: -30 }}
+                animate={{ opacity: 1, y: 0, x: 0 }}
+                transition={{ delay: 2, duration: 0.8 }}
+                className="absolute -bottom-8 -left-8 hidden lg:block"
+              >
+                <div className={`
+                  backdrop-blur-xl rounded-4xl p-6 border
+                  ${isDark 
+                    ? 'bg-dark-bg-secondary/80 border-luxury-gold/20' 
+                    : 'bg-white/80 border-white/20'
+                  }
+                  shadow-luxury-lg
+                `}>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-luxury-gold rounded-full flex items-center justify-center">
+                      <FaCrown className="text-white text-xl" />
+                    </div>
+                    <div>
+                      <h3 className={`
+                        font-playfair text-lg font-bold
+                        ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
+                      `}>
+                        Heritage Collection
+                      </h3>
+                      <p className={`
+                        font-inter text-sm
+                        ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
+                      `}>
+                        Timeless pieces crafted with precision
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
 
-            {/* Enhanced Decorative Elements */}
-            <motion.div
-              animate={{ 
-                rotate: 360,
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ 
-                rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-                scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-              }}
-              className="absolute -top-6 -right-6 w-16 h-16 border-4 border-luxury-gold border-dashed rounded-full opacity-60"
-            />
-            <motion.div
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.8, 1, 0.8]
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -bottom-6 -left-6 w-12 h-12 bg-luxury-gold rounded-full"
-            />
+              {/* Decorative Elements */}
+              <motion.div
+                animate={{ 
+                  rotate: 360,
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                }}
+                className="absolute -top-8 -right-8 w-20 h-20 border-4 border-luxury-gold border-dashed rounded-full opacity-40"
+              />
+              
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  opacity: [0.6, 1, 0.6]
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -bottom-6 -right-6 w-16 h-16 bg-luxury-gold rounded-full opacity-60"
+              />
+            </div>
           </motion.div>
         </div>
       </div>
@@ -452,7 +610,7 @@ const HeroSection = () => {
   );
 };
 
-// Featured Collections Section
+// Enhanced Featured Collections
 const FeaturedCollections = memo(() => {
   const { isDark } = useThemeStore();
   const [ref, inView] = useInView({
@@ -467,7 +625,8 @@ const FeaturedCollections = memo(() => {
       image: "https://images.unsplash.com/photo-1606623546924-a4f3ae5ea3e8",
       icon: <FaRing />,
       description: "Elegant gold rings crafted with precision",
-      price: "₹35,000+"
+      price: "₹35,000+",
+      items: "120+ Designs"
     },
     {
       id: 2,
@@ -475,7 +634,8 @@ const FeaturedCollections = memo(() => {
       image: "https://images.unsplash.com/photo-1611107683227-e9060eccd846",
       icon: <FaGem />,
       description: "Stunning necklaces for every occasion",
-      price: "₹65,000+"
+      price: "₹65,000+",
+      items: "80+ Designs"
     },
     {
       id: 3,
@@ -483,7 +643,8 @@ const FeaturedCollections = memo(() => {
       image: "https://images.pexels.com/photos/32455915/pexels-photo-32455915.png",
       icon: <FaHeart />,
       description: "Traditional bridal jewelry sets",
-      price: "₹2,50,000+"
+      price: "₹2,50,000+",
+      items: "50+ Sets"
     },
     {
       id: 4,
@@ -491,7 +652,8 @@ const FeaturedCollections = memo(() => {
       image: "https://images.unsplash.com/photo-1684616289806-caa847f47f0e",
       icon: <FaCrown />,
       description: "Complete ring collections",
-      price: "₹1,80,000+"
+      price: "₹1,80,000+",
+      items: "30+ Collections"
     }
   ];
 
@@ -499,21 +661,37 @@ const FeaturedCollections = memo(() => {
     <section 
       ref={ref}
       className={`
-        py-24 transition-colors duration-500
+        py-32 transition-colors duration-500
         ${isDark ? 'bg-dark-bg' : 'bg-luxury-cream-light'}
       `}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
+          <motion.div
+            variants={fadeInUp}
+            className="mb-6"
+          >
+            <span className={`
+              inline-block px-4 py-2 rounded-full text-sm font-medium
+              ${isDark 
+                ? 'bg-dark-bg-tertiary text-luxury-gold border border-luxury-gold/20' 
+                : 'bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/20'
+              }
+            `}>
+              Our Collections
+            </span>
+          </motion.div>
+          
           <motion.h2
             variants={fadeInUp}
             className={`
-              font-playfair text-4xl md:text-5xl font-bold
+              font-playfair text-4xl md:text-5xl lg:text-6xl font-bold mb-6
               ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
             `}
           >
@@ -522,14 +700,16 @@ const FeaturedCollections = memo(() => {
           <motion.p
             variants={fadeInUp}
             className={`
-              font-inter text-xl mt-4 max-w-2xl mx-auto
+              font-inter text-xl leading-relaxed max-w-3xl mx-auto
               ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
             `}
           >
-            Discover our handpicked selection of exquisite jewelry pieces
+            Discover our handpicked selection of exquisite jewelry pieces, 
+            each telling a unique story of craftsmanship and elegance.
           </motion.p>
         </motion.div>
 
+        {/* Collections Grid */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -540,54 +720,69 @@ const FeaturedCollections = memo(() => {
             <motion.div
               key={collection.id}
               variants={scaleIn}
-              whileHover={{ y: -15, scale: 1.02 }}
+              whileHover={{ y: -20, scale: 1.03 }}
               className="group cursor-pointer"
             >
               <div className={`
-                relative overflow-hidden rounded-3xl transition-all duration-700
+                relative overflow-hidden rounded-6xl transition-all duration-700
                 ${isDark 
                   ? 'bg-dark-bg-secondary shadow-dark hover:shadow-dark-lg' 
-                  : 'bg-white shadow-luxury hover:shadow-luxury-lg'
+                  : 'bg-white shadow-luxury hover:shadow-luxury-xl'
                 }
               `}>
-                <div className="relative overflow-hidden">
+                {/* Image Container */}
+                <div className="relative overflow-hidden aspect-square">
                   <motion.img
                     src={collection.image}
                     alt={collection.title}
-                    className="w-full h-80 object-cover"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.6 }}
+                    className="w-full h-full object-cover"
+                    whileHover={{ scale: 1.15 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     loading="lazy"
                   />
                   
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  {/* Modern Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
                   
-                  {/* Price Tag */}
+                  {/* Price Badge */}
                   <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    whileHover={{ opacity: 1, y: 0 }}
-                    className="absolute top-4 right-4 bg-luxury-gold text-white px-3 py-2 rounded-full text-sm font-bold"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileHover={{ opacity: 1, scale: 1 }}
+                    className="absolute top-4 right-4 bg-luxury-gold text-white px-3 py-2 rounded-full text-sm font-bold shadow-gold"
                   >
                     {collection.price}
                   </motion.div>
 
-                  {/* Hover Content */}
+                  {/* Items Count */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileHover={{ opacity: 1, scale: 1 }}
+                    className={`
+                      absolute top-4 left-4 px-3 py-2 rounded-full text-xs font-medium
+                      ${isDark ? 'bg-dark-bg/80 text-dark-text' : 'bg-white/80 text-luxury-charcoal'}
+                      backdrop-blur-md
+                    `}
+                  >
+                    {collection.items}
+                  </motion.div>
+
+                  {/* Center Action Button */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="px-6 py-3 bg-white/20 backdrop-blur-md text-white font-semibold rounded-full border border-white/30 hover:bg-luxury-gold/80 transition-colors"
+                    <ModernButton 
+                      variant="primary" 
+                      size="sm"
+                      href="/gallery"
+                      icon={<FaShoppingBag />}
                     >
                       View Collection
-                    </motion.button>
+                    </ModernButton>
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <span className="text-luxury-gold text-xl">{collection.icon}</span>
+                <div className="p-8">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <span className="text-luxury-gold text-2xl">{collection.icon}</span>
                     <h3 className={`
                       font-playfair text-xl font-bold
                       ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
@@ -596,20 +791,18 @@ const FeaturedCollections = memo(() => {
                     </h3>
                   </div>
                   <p className={`
-                    font-inter text-sm leading-relaxed
+                    font-inter leading-relaxed mb-6
                     ${isDark ? 'text-dark-text-secondary' : 'text-luxury-charcoal/80'}
                   `}>
                     {collection.description}
                   </p>
                   
-                  {/* Action Button */}
+                  {/* Explore Link */}
                   <motion.div
-                    className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                    whileHover={{ x: 5 }}
+                    className="flex items-center text-luxury-gold font-medium cursor-pointer group-hover:translate-x-2 transition-transform duration-300"
                   >
-                    <span className="text-luxury-gold font-medium text-sm cursor-pointer hover:underline">
-                      Explore More →
-                    </span>
+                    <span className="mr-2">Explore More</span>
+                    <FaArrowRight className="text-sm" />
                   </motion.div>
                 </div>
               </div>
@@ -622,78 +815,126 @@ const FeaturedCollections = memo(() => {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="text-center mt-16"
+          className="text-center mt-20"
         >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-gradient-gold text-white font-semibold rounded-full shadow-gold-lg hover:shadow-gold-xl transition-all duration-300"
+          <ModernButton 
+            variant="primary" 
+            size="lg"
+            href="/gallery"
+            icon={<FaArrowRight />}
           >
             View All Collections
-          </motion.button>
+          </ModernButton>
         </motion.div>
       </div>
     </section>
   );
 });
 
-// Footer Component
+// Enhanced Footer
 const Footer = () => {
   const { isDark } = useThemeStore();
 
+  const socialLinks = [
+    { icon: <FaInstagram />, href: "https://instagram.com/padmavatijewellers", label: "Instagram" },
+    { icon: <FaWhatsapp />, href: "https://wa.me/919876543210", label: "WhatsApp" },
+  ];
+
   return (
     <footer className={`
-      py-16 transition-colors duration-500
-      ${isDark ? 'bg-dark-bg-tertiary text-dark-text' : 'bg-luxury-charcoal text-white'}
+      py-20 transition-colors duration-500
+      ${isDark ? 'bg-dark-bg-tertiary' : 'bg-luxury-charcoal'}
+      text-white
     `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-3 gap-12">
+        <div className="grid md:grid-cols-4 gap-12 mb-12">
           {/* Brand Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
+            className="md:col-span-2"
           >
-            <div className="flex items-center space-x-3 mb-4 group">
+            <Link to="/" className="flex items-center space-x-3 mb-6 group">
               <motion.div
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
-                <FaCrown className="text-luxury-gold text-2xl" />
+                <FaCrown className="text-luxury-gold text-3xl" />
               </motion.div>
-              <span className="font-playfair text-2xl font-bold">
+              <span className="font-playfair text-3xl font-bold">
                 Padmavati Jewellers
               </span>
-            </div>
-            <p className={`
-              font-inter leading-relaxed
-              ${isDark ? 'text-dark-text-secondary' : 'text-white/80'}
-            `}>
+            </Link>
+            <p className="font-inter text-lg leading-relaxed text-white/80 mb-6 max-w-md">
               Crafting exquisite jewelry for generations. Our legacy of excellence 
-              continues with each handcrafted piece.
+              continues with each handcrafted piece, bringing dreams to life.
             </p>
+            <div className="flex space-x-4">
+              {socialLinks.map((social, index) => (
+                <motion.a
+                  key={index}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.2, y: -5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-12 h-12 bg-luxury-gold rounded-full flex items-center justify-center hover:bg-luxury-gold-dark transition-colors duration-300 shadow-lg hover:shadow-gold"
+                  aria-label={social.label}
+                >
+                  <span className="text-white text-xl">{social.icon}</span>
+                </motion.a>
+              ))}
+            </div>
           </motion.div>
 
-          {/* Contact Info */}
+          {/* Quick Links */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <h3 className="font-playfair text-xl font-bold mb-4">Contact Us</h3>
-            <div className="space-y-3">
+            <h3 className="font-playfair text-xl font-bold mb-6">Quick Links</h3>
+            <div className="space-y-4">
+              {[
+                { name: 'Home', href: '/' },
+                { name: 'Gallery', href: '/gallery' },
+                { name: 'About Us', href: '/about' },
+                { name: 'Contact', href: '/contact' }
+              ].map((link, index) => (
+                <motion.div key={index} whileHover={{ x: 5 }}>
+                  <Link 
+                    to={link.href}
+                    className="font-inter text-white/80 hover:text-luxury-gold transition-colors duration-300 flex items-center group"
+                  >
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">
+                      {link.name}
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Contact Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            viewport={{ once: true }}
+          >
+            <h3 className="font-playfair text-xl font-bold mb-6">Contact Us</h3>
+            <div className="space-y-4">
               <motion.div 
-                className="flex items-center space-x-3 group cursor-pointer"
+                className="flex items-start space-x-3 group cursor-pointer"
                 whileHover={{ x: 5 }}
               >
-                <FaMapMarkerAlt className="text-luxury-gold group-hover:scale-110 transition-transform" />
-                <span className={`
-                  font-inter
-                  ${isDark ? 'text-dark-text-secondary' : 'text-white/80'}
-                `}>
-                  Amalner, Maharashtra
+                <FaMapMarkerAlt className="text-luxury-gold text-lg mt-1 group-hover:scale-110 transition-transform" />
+                <span className="font-inter text-white/80">
+                  123 Main Market Street<br />
+                  Amalner, Maharashtra 424401
                 </span>
               </motion.div>
               <motion.div 
@@ -701,60 +942,25 @@ const Footer = () => {
                 whileHover={{ x: 5 }}
               >
                 <FaPhone className="text-luxury-gold group-hover:scale-110 transition-transform" />
-                <span className={`
-                  font-inter
-                  ${isDark ? 'text-dark-text-secondary' : 'text-white/80'}
-                `}>
-                  +91 98765 43210
-                </span>
+                <span className="font-inter text-white/80">+91 98765 43210</span>
               </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Social Links */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-          >
-            <h3 className="font-playfair text-xl font-bold mb-4">Follow Us</h3>
-            <div className="flex space-x-4">
-              <motion.a
-                whileHover={{ scale: 1.2, y: -5 }}
-                whileTap={{ scale: 0.9 }}
-                href="#"
-                className="w-12 h-12 bg-luxury-gold rounded-full flex items-center justify-center hover:bg-luxury-gold-dark transition-colors shadow-lg hover:shadow-gold"
-              >
-                <FaInstagram className="text-white text-xl" />
-              </motion.a>
-              <motion.a
-                whileHover={{ scale: 1.2, y: -5 }}
-                whileTap={{ scale: 0.9 }}
-                href="#"
-                className="w-12 h-12 bg-luxury-gold rounded-full flex items-center justify-center hover:bg-luxury-gold-dark transition-colors shadow-lg hover:shadow-gold"
-              >
-                <FaWhatsapp className="text-white text-xl" />
-              </motion.a>
             </div>
           </motion.div>
         </div>
 
+        {/* Bottom Section */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.6 }}
           viewport={{ once: true }}
-          className={`
-            border-t mt-12 pt-8 text-center
-            ${isDark ? 'border-dark-bg' : 'border-white/20'}
-          `}
+          className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center"
         >
-          <p className={`
-            font-inter
-            ${isDark ? 'text-dark-text-muted' : 'text-white/60'}
-          `}>
+          <p className="font-inter text-white/60 text-center md:text-left">
             © 2025 Padmavati Jewellers. All rights reserved.
+          </p>
+          <p className="font-inter text-white/60 text-center md:text-right mt-4 md:mt-0">
+            Crafted with ❤️ for jewelry lovers
           </p>
         </motion.div>
       </div>
@@ -772,13 +978,13 @@ const Home = () => {
   );
 };
 
-// Main App Component
-function App() {
+// Main App Component with Router Context
+const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { isDark, setTheme } = useThemeStore();
 
   useEffect(() => {
-    // Initialize theme from system preference if not set
+    // Initialize theme
     if (typeof isDark === 'undefined') {
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setTheme(systemPrefersDark);
@@ -786,7 +992,7 @@ function App() {
 
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [isDark, setTheme]);
@@ -796,19 +1002,25 @@ function App() {
       <CustomCursor />
       <LoadingScreen isLoading={isLoading} />
       
-      <BrowserRouter>
-        <Header />
-        <main className="pt-20">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-          </Routes>
-        </main>
-        <Footer />
-      </BrowserRouter>
+      <Header />
+      <main className="pt-20">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </main>
+      <Footer />
     </div>
+  );
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 
