@@ -81,47 +81,108 @@ const LoadingScreen = ({ isLoading }) => (
 
 // Header Component
 const Header = () => {
+  const { isDark } = useThemeStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <motion.header
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, delay: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-40 bg-luxury-cream-light/95 backdrop-blur-sm border-b border-luxury-gold/20"
+      className={`
+        fixed top-0 left-0 right-0 z-40 transition-all duration-500
+        ${scrolled || isDark
+          ? isDark 
+            ? 'bg-dark-bg/95 backdrop-blur-xl border-b border-luxury-gold/20' 
+            : 'bg-luxury-cream-light/95 backdrop-blur-xl border-b border-luxury-gold/20'
+          : 'bg-transparent'
+        }
+      `}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <Link to="/" className="flex items-center space-x-3">
-            <FaCrown className="text-luxury-gold text-2xl" />
-            <span className="font-playfair text-2xl font-bold text-luxury-charcoal">
+          <Link to="/" className="flex items-center space-x-3 group">
+            <motion.div
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.6 }}
+            >
+              <FaCrown className="text-luxury-gold text-2xl" />
+            </motion.div>
+            <span className={`
+              font-playfair text-2xl font-bold transition-colors duration-300
+              ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
+            `}>
               Padmavati Jewellers
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link to="/" className="font-inter text-luxury-charcoal hover:text-luxury-gold transition-colors">
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link 
+              to="/" 
+              className={`
+                font-inter transition-all duration-300 relative group
+                ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+              `}
+            >
               Home
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
             </Link>
-            <Link to="/gallery" className="font-inter text-luxury-charcoal hover:text-luxury-gold transition-colors">
+            <Link 
+              to="/gallery" 
+              className={`
+                font-inter transition-all duration-300 relative group
+                ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+              `}
+            >
               Gallery
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
             </Link>
-            <Link to="/about" className="font-inter text-luxury-charcoal hover:text-luxury-gold transition-colors">
+            <Link 
+              to="/about" 
+              className={`
+                font-inter transition-all duration-300 relative group
+                ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+              `}
+            >
               About
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
             </Link>
-            <Link to="/contact" className="font-inter text-luxury-charcoal hover:text-luxury-gold transition-colors">
+            <Link 
+              to="/contact" 
+              className={`
+                font-inter transition-all duration-300 relative group
+                ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+              `}
+            >
               Contact
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-luxury-gold transition-all duration-300 group-hover:w-full" />
             </Link>
+            <ThemeToggle />
           </nav>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden text-luxury-charcoal"
-          >
-            {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-          </button>
+          <div className="md:hidden flex items-center space-x-4">
+            <ThemeToggle />
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className={`
+                transition-colors duration-300
+                ${isDark ? 'text-dark-text' : 'text-luxury-charcoal'}
+              `}
+            >
+              {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -131,33 +192,48 @@ const Header = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden py-4 border-t border-luxury-gold/20"
+              className={`
+                md:hidden py-4 border-t
+                ${isDark ? 'border-luxury-gold/20' : 'border-luxury-gold/20'}
+              `}
             >
               <div className="flex flex-col space-y-4">
                 <Link 
                   to="/" 
-                  className="font-inter text-luxury-charcoal hover:text-luxury-gold transition-colors"
+                  className={`
+                    font-inter transition-colors duration-300
+                    ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+                  `}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Home
                 </Link>
                 <Link 
                   to="/gallery" 
-                  className="font-inter text-luxury-charcoal hover:text-luxury-gold transition-colors"
+                  className={`
+                    font-inter transition-colors duration-300
+                    ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+                  `}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Gallery
                 </Link>
                 <Link 
                   to="/about" 
-                  className="font-inter text-luxury-charcoal hover:text-luxury-gold transition-colors"
+                  className={`
+                    font-inter transition-colors duration-300
+                    ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+                  `}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   About
                 </Link>
                 <Link 
                   to="/contact" 
-                  className="font-inter text-luxury-charcoal hover:text-luxury-gold transition-colors"
+                  className={`
+                    font-inter transition-colors duration-300
+                    ${isDark ? 'text-dark-text hover:text-luxury-gold' : 'text-luxury-charcoal hover:text-luxury-gold'}
+                  `}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Contact
