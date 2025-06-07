@@ -639,68 +639,124 @@ const FeaturedCollections = memo(() => {
 
 // Footer Component
 const Footer = () => {
+  const { isDark } = useThemeStore();
+
   return (
-    <footer className="bg-luxury-charcoal text-white py-16">
+    <footer className={`
+      py-16 transition-colors duration-500
+      ${isDark ? 'bg-dark-bg-tertiary text-dark-text' : 'bg-luxury-charcoal text-white'}
+    `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-3 gap-12">
           {/* Brand Section */}
-          <div>
-            <div className="flex items-center space-x-3 mb-4">
-              <FaCrown className="text-luxury-gold text-2xl" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center space-x-3 mb-4 group">
+              <motion.div
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
+                <FaCrown className="text-luxury-gold text-2xl" />
+              </motion.div>
               <span className="font-playfair text-2xl font-bold">
                 Padmavati Jewellers
               </span>
             </div>
-            <p className="font-inter text-white/80 leading-relaxed">
+            <p className={`
+              font-inter leading-relaxed
+              ${isDark ? 'text-dark-text-secondary' : 'text-white/80'}
+            `}>
               Crafting exquisite jewelry for generations. Our legacy of excellence 
               continues with each handcrafted piece.
             </p>
-          </div>
+          </motion.div>
 
           {/* Contact Info */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
             <h3 className="font-playfair text-xl font-bold mb-4">Contact Us</h3>
             <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <FaMapMarkerAlt className="text-luxury-gold" />
-                <span className="font-inter text-white/80">Amalner, Maharashtra</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <FaPhone className="text-luxury-gold" />
-                <span className="font-inter text-white/80">+91 98765 43210</span>
-              </div>
+              <motion.div 
+                className="flex items-center space-x-3 group cursor-pointer"
+                whileHover={{ x: 5 }}
+              >
+                <FaMapMarkerAlt className="text-luxury-gold group-hover:scale-110 transition-transform" />
+                <span className={`
+                  font-inter
+                  ${isDark ? 'text-dark-text-secondary' : 'text-white/80'}
+                `}>
+                  Amalner, Maharashtra
+                </span>
+              </motion.div>
+              <motion.div 
+                className="flex items-center space-x-3 group cursor-pointer"
+                whileHover={{ x: 5 }}
+              >
+                <FaPhone className="text-luxury-gold group-hover:scale-110 transition-transform" />
+                <span className={`
+                  font-inter
+                  ${isDark ? 'text-dark-text-secondary' : 'text-white/80'}
+                `}>
+                  +91 98765 43210
+                </span>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Social Links */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            viewport={{ once: true }}
+          >
             <h3 className="font-playfair text-xl font-bold mb-4">Follow Us</h3>
             <div className="flex space-x-4">
               <motion.a
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.2, y: -5 }}
                 whileTap={{ scale: 0.9 }}
                 href="#"
-                className="w-12 h-12 bg-luxury-gold rounded-full flex items-center justify-center hover:bg-luxury-gold-dark transition-colors"
+                className="w-12 h-12 bg-luxury-gold rounded-full flex items-center justify-center hover:bg-luxury-gold-dark transition-colors shadow-lg hover:shadow-gold"
               >
                 <FaInstagram className="text-white text-xl" />
               </motion.a>
               <motion.a
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.2, y: -5 }}
                 whileTap={{ scale: 0.9 }}
                 href="#"
-                className="w-12 h-12 bg-luxury-gold rounded-full flex items-center justify-center hover:bg-luxury-gold-dark transition-colors"
+                className="w-12 h-12 bg-luxury-gold rounded-full flex items-center justify-center hover:bg-luxury-gold-dark transition-colors shadow-lg hover:shadow-gold"
               >
                 <FaWhatsapp className="text-white text-xl" />
               </motion.a>
             </div>
-          </div>
+          </motion.div>
         </div>
 
-        <div className="border-t border-white/20 mt-12 pt-8 text-center">
-          <p className="font-inter text-white/60">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          viewport={{ once: true }}
+          className={`
+            border-t mt-12 pt-8 text-center
+            ${isDark ? 'border-dark-bg' : 'border-white/20'}
+          `}
+        >
+          <p className={`
+            font-inter
+            ${isDark ? 'text-dark-text-muted' : 'text-white/60'}
+          `}>
             © 2025 Padmavati Jewellers. All rights reserved.
           </p>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );
