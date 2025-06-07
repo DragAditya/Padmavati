@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { 
@@ -13,6 +13,13 @@ import {
   FaHeart,
   FaCrown
 } from 'react-icons/fa';
+import { useInView } from 'react-intersection-observer';
+import useThemeStore from './stores/themeStore';
+import CustomCursor from './components/CustomCursor';
+import ThemeToggle from './components/ThemeToggle';
+import Gallery from './pages/Gallery';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import './App.css';
 
 const fadeInUp = {
